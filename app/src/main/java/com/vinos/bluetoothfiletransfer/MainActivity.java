@@ -2,12 +2,18 @@ package com.vinos.bluetoothfiletransfer;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -30,6 +36,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements CustomAdapter.DeviceSelectionListener {
 
+    boolean mBound = false;
     public static int BLUETOOTH_DEVICE_SELECT_CODE = 4354345;
     BluetoothAdapter adapter;
     List<BluetoothDevice> devices;
@@ -41,6 +48,23 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     BluetoothDevice selectedBluetoothDevice;
     File selectedFile;
     LinearLayout mainController;
+    private String TAG = "MainActivity";
+    ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            Log.v(TAG, "onServiceConnected");
+            BluetoothConnectionService.BluetoothBinder binder = (BluetoothConnectionService.BluetoothBinder) service;
+            bluetoothConnectionService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.v(TAG, "onServiceDisconnected");
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             public void onClick(View v) {
 
                 if (selectedBluetoothDevice != null && selectedFile != null) {
-                    bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
+                    // bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
                 } else {
                     Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
                 }
@@ -98,16 +122,32 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             }
         });
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         refreshUI();
     }
 
     private void refreshUI() {
-        if (adapter == null || !adapter.isEnabled()) {
+        if (adapter == null) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Alert").setMessage("Bluetooth is not supported")
+                    .setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    }).show();
+        } else if (!adapter.isEnabled()) {
             buttonBluetooth.setVisibility(View.VISIBLE);
             mainController.setVisibility(View.GONE);
         } else {
             buttonBluetooth.setVisibility(View.GONE);
             mainController.setVisibility(View.VISIBLE);
+            Intent intent = new Intent(MainActivity.this, BluetoothConnectionService.class);
+            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -132,9 +172,9 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     }
 
     @SuppressLint("MissingPermission")
-    private void getBondedDevices(){
+    private void getBondedDevices() {
         devices = new ArrayList<>(adapter.getBondedDevices());
-        CustomAdapter bluetoothDeviceArrayAdapter = new CustomAdapter(devices,this);
+        CustomAdapter bluetoothDeviceArrayAdapter = new CustomAdapter(devices, this);
         deviceList.setAdapter(bluetoothDeviceArrayAdapter);
     }
 
@@ -194,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             }
             adapter.enable();
 
-        }else{
+        } else {
             buttonBluetooth.setVisibility(View.GONE);
         }
     }
@@ -203,6 +243,16 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     @Override
     public void onDeviceSelected(BluetoothDevice bluetoothDevice) {
         this.selectedBluetoothDevice = bluetoothDevice;
-        Toast.makeText(this,bluetoothDevice.getName(),Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v("onDestroy", "onDestroy");
+        if (serviceConnection != null) {
+            Log.v("onDestroy", "unbindService");
+            unbindService(serviceConnection);
+        }
     }
 }

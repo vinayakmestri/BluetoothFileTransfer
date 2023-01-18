@@ -13,9 +13,13 @@ public class BluetoothServerController extends Thread {
 
     BluetoothServerSocket bluetoothServerSocket;
     boolean isCanceled = false;
+    private FileProgressListener fileProgressListener;
+    private BluetoothConnectionListener bluetoothConnectionListener;
 
     @SuppressLint("MissingPermission")
-    public BluetoothServerController() {
+    public BluetoothServerController(BluetoothConnectionListener bluetoothConnectionListener, FileProgressListener fileProgressListener) {
+        this.bluetoothConnectionListener = bluetoothConnectionListener;
+        this.fileProgressListener = fileProgressListener;
         init();
     }
 
@@ -56,7 +60,10 @@ public class BluetoothServerController extends Thread {
 
             if (!this.isCanceled && socket != null) {
                 Log.v(TAG, "BluetoothServer : starting");
-                new BluetoothServer(socket).start();
+                BluetoothServer bluetoothServer = new BluetoothServer(socket);
+                bluetoothServer.setBluetoothConnectionListener(bluetoothConnectionListener);
+                bluetoothServer.setFileProgressListener(fileProgressListener);
+                bluetoothServer.start();
             }
         }
     }

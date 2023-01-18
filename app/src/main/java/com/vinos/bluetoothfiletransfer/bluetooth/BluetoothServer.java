@@ -19,12 +19,24 @@ public class BluetoothServer extends Thread {
     InputStream inputStream;
     OutputStream outputStream;
 
+    private FileProgressListener fileProgressListener;
+    private BluetoothConnectionListener bluetoothConnectionListener;
+
+
+    public void setBluetoothConnectionListener(BluetoothConnectionListener bluetoothConnectionListener) {
+        this.bluetoothConnectionListener = bluetoothConnectionListener;
+    }
+
+    public void setFileProgressListener(FileProgressListener fileProgressListener) {
+        this.fileProgressListener = fileProgressListener;
+    }
+
     public BluetoothServer(BluetoothSocket socket) {
         this.socket = socket;
         try {
             this.inputStream = this.socket.getInputStream();
             this.outputStream = this.socket.getOutputStream();
-            Log.v(TAG,"BluetoothServer : inputStream,outputStream initialized");
+            Log.v(TAG, "BluetoothServer : inputStream,outputStream initialized");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,12 +101,25 @@ public class BluetoothServer extends Thread {
                 Log.v(TAG, "BluetoothServer : file transfer successfully " + count++);
             }
             sleep(5000);
-            inputStream.close();
-            outputStream.close();
-            socket.close();
         } catch (Exception e) {
-            Log.v(TAG,"BluetoothServer :"+e.getMessage());
+            if (bluetoothConnectionListener != null) {
+                bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+            }
+            Log.v(TAG, "BluetoothServer :" + e.getMessage());
             e.printStackTrace();
+        } finally {
+            try {
+                inputStream.close();
+                outputStream.close();
+                socket.close();
+                if (fileProgressListener != null) {
+                    fileProgressListener.onFileFinished();
+                }
+            } catch (Exception e) {
+                if (bluetoothConnectionListener != null) {
+                    bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+                }
+            }
         }
     }
 }

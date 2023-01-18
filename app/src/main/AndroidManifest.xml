@@ -43,6 +43,10 @@
         <activity
             android:name=".DeviceListActivity"
             android:exported="true" />
+
+        <service
+            android:name=".bluetooth.BluetoothConnectionService"
+            android:exported="true" />
     </application>
 
 </manifest>
