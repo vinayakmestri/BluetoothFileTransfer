@@ -16,18 +16,22 @@ public class BluetoothServerController extends Thread {
 
     @SuppressLint("MissingPermission")
     public BluetoothServerController() {
+        init();
+    }
+
+    private void init() {
         try {
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-            if(bluetoothAdapter!=null) {
-                Log.v(TAG,"BluetoothAdapter : initialized");
+            if (bluetoothAdapter != null) {
+                Log.v(TAG, "BluetoothAdapter : initialized");
                 bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("BluetoothFileTransfer", Constant.uuid);
                 isCanceled = false;
-            }else{
-                Log.v(TAG,"BluetoothAdapter : null");
+            } else {
+                Log.v(TAG, "BluetoothAdapter : null");
                 isCanceled = true;
                 bluetoothServerSocket = null;
             }
-            } catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -51,7 +55,7 @@ public class BluetoothServerController extends Thread {
             }
 
             if (!this.isCanceled && socket != null) {
-                Log.v(TAG,"BluetoothServer : starting");
+                Log.v(TAG, "BluetoothServer : starting");
                 new BluetoothServer(socket).start();
             }
         }
@@ -59,5 +63,10 @@ public class BluetoothServerController extends Thread {
 
     public boolean isCanceled() {
         return isCanceled;
+    }
+
+    public void reset() {
+        isCanceled = false;
+        init();
     }
 }

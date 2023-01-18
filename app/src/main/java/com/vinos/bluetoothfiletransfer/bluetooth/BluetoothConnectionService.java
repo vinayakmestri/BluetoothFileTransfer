@@ -8,8 +8,10 @@ import java.io.File;
 
 public class BluetoothConnectionService {
 
+    BluetoothServerController bluetoothServerController;
     public void startServer() {
-        new BluetoothServerController().start();
+        bluetoothServerController = new BluetoothServerController();
+        bluetoothServerController.start();
     }
 
     public Boolean startClient(BluetoothDevice device, File file) {

@@ -10,12 +10,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -33,11 +35,12 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     List<BluetoothDevice> devices;
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 3433;
     int MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT = 8757;
-    TextView buttonBluetooth, sendButton, receiveButton, selectFile;
+    TextView buttonBluetooth, sendButton, receiveButton, selectFile, selectDevice;
     RecyclerView deviceList;
     BluetoothConnectionService bluetoothConnectionService;
     BluetoothDevice selectedBluetoothDevice;
     File selectedFile;
+    LinearLayout mainController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +52,9 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
         deviceList = (RecyclerView) findViewById(R.id.deviceList);
         selectFile = (TextView) findViewById(R.id.selectFile);
         sendButton = (TextView) findViewById(R.id.sendButton);
+        selectDevice = (TextView) findViewById(R.id.selectDevice);
         receiveButton = (TextView) findViewById(R.id.receiveButton);
+        mainController = (LinearLayout) findViewById(R.id.mainController);
         deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 
@@ -60,15 +65,21 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
                 startBluetooth();
             }
         });
+        selectDevice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
+                startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
+            }
+        });
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
-                startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
-
                 if (selectedBluetoothDevice != null && selectedFile != null) {
                     bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
+                } else {
+                    Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -87,12 +98,17 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             }
         });
 
-        if (!adapter.isEnabled()) {
+        refreshUI();
+    }
+
+    private void refreshUI() {
+        if (adapter == null || !adapter.isEnabled()) {
             buttonBluetooth.setVisibility(View.VISIBLE);
+            mainController.setVisibility(View.GONE);
         } else {
             buttonBluetooth.setVisibility(View.GONE);
+            mainController.setVisibility(View.VISIBLE);
         }
-        getBondedDevices();
     }
 
     private void selectFile() {
@@ -103,19 +119,13 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
 
 
     private void receiveButton() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+
             return;
         }
         try {
             bluetoothConnectionService.startServer();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -137,36 +147,40 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             }
 
             return;
-        }
-        Uri uri = data.getData();
-        String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
-        Log.v("ABC", "Path : " + fileAbsolutePath);
+        } else {
+            Uri uri = data.getData();
+            String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
+            Log.v("ABC", "Path : " + fileAbsolutePath);
 
-        File file = new File(fileAbsolutePath);
-        Log.v("ABC", "Path : name: " + file.getName() + " " + " size: " + file.length());
+            File file = new File(fileAbsolutePath);
+            selectedFile = file;
+
+            Log.v("ABC", "Path : name: " + file.getName() + " " + " size: " + file.length());
+        }
 
     }
 
     private void checkPermissions() {
         String[] permissions = {android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.BLUETOOTH,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
 
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    android.Manifest.permission.BLUETOOTH_CONNECT
-            )
-            ) {
-                ActivityCompat.requestPermissions(
-                        this, permissions,
-                        MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT
-                );
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                    ActivityCompat.requestPermissions(
+                            this, permissions,
+                            MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT
+                    );
+                }
+                //finish();
             }
-            return;
         }
+
+
+        //getBondedDevices();
 
     }
 

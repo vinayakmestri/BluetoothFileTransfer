@@ -1,10 +1,11 @@
 package com.vinos.bluetoothfiletransfer.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
+import android.os.Environment;
 import android.util.Log;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +63,9 @@ public class BluetoothServer extends Thread {
                 int read = -1;
                 int totalBytesRead = 0;
                 read = inputStream.read(buffer, 0, buffer.length);
+                int count = 0;
                 while (read != -1) {
+                    Log.v(TAG, "BluetoothServer : byte " + count++);
                     baos.write(buffer, 0, read);
                     totalBytesRead += read;
                     if (totalBytesRead == totalFileSizeInBytes) {
@@ -72,10 +75,18 @@ public class BluetoothServer extends Thread {
                 }
                 baos.flush();
 
-
-                FileOutputStream fos = new FileOutputStream("saveFile.path");
+                File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                Log.v(TAG, "BluetoothServer : file  path :" + directory.getAbsolutePath());
+                File file = new File(directory, String.valueOf(fileName));
+                /*if(file.exists()){
+                    file.delete();
+                    file.createNewFile();
+                }*/
+                Log.v(TAG, "BluetoothServer : file actual  path :" + file.getAbsolutePath());
+                FileOutputStream fos = new FileOutputStream(file);
                 fos.write(baos.toByteArray());
                 fos.close();
+                Log.v(TAG, "BluetoothServer : file transfer successfully " + count++);
             }
             sleep(5000);
             inputStream.close();
@@ -85,6 +96,5 @@ public class BluetoothServer extends Thread {
             Log.v(TAG,"BluetoothServer :"+e.getMessage());
             e.printStackTrace();
         }
-
     }
 }
