@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -14,11 +15,6 @@ import java.io.File;
 
 public class BluetoothConnectionService extends Service {
 
-    IBinder binder = new BluetoothBinder();
-
-    UpdateListener updateListener;
-
-    BluetoothServerController bluetoothServerController;
     BluetoothConnectionListener bluetoothConnectionListener = new BluetoothConnectionListener() {
         @Override
         public void onConnected() {
@@ -32,7 +28,41 @@ public class BluetoothConnectionService extends Service {
 
         @Override
         public void onConnectionFailure(String message) {
-            updateListener.onConnectionFailure(message);
+            if (message != null)
+                updateListener.onConnectionFailure(message);
+        }
+    };
+
+    IBinder binder = new BluetoothBinder();
+    private String TAG = "BluetoothConnectionService";
+
+    BluetoothServerController bluetoothServerController;
+    UpdateListener updateListener = new UpdateListener() {
+        @Override
+        public void onConnected() {
+            Log.v(TAG, "BluetoothServer : onConnected ");
+        }
+
+        @Override
+        public boolean isConnected() {
+            return false;
+        }
+
+        @Override
+        public void onConnectionFailure(String message) {
+            Log.v(TAG, "BluetoothServer : error :" + message);
+        }
+
+        @Override
+        public void onProgressChanged(int progress) {
+
+            Log.v(TAG, "BluetoothServer : file transfer progress " + progress);
+
+        }
+
+        @Override
+        public void onFileFinished() {
+            Log.v(TAG, "BluetoothServer : File transfer successful");
         }
     };
     FileProgressListener fileProgressListener = new FileProgressListener() {
@@ -80,5 +110,9 @@ public class BluetoothConnectionService extends Service {
             // Return this instance of LocalService so clients can call public methods
             return BluetoothConnectionService.this;
         }
+    }
+
+    public void registerListener(UpdateListener updateListener) {
+        this.updateListener = updateListener;
     }
 }
