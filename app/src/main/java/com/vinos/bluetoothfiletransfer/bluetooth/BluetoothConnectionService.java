@@ -15,32 +15,20 @@ import java.io.File;
 
 public class BluetoothConnectionService extends Service {
 
-    BluetoothConnectionListener bluetoothConnectionListener = new BluetoothConnectionListener() {
-        @Override
-        public void onConnected() {
-            updateListener.onConnected();
-        }
-
-        @Override
-        public boolean isConnected() {
-            return false;
-        }
-
-        @Override
-        public void onConnectionFailure(String message) {
-            if (message != null)
-                updateListener.onConnectionFailure(message);
-        }
-    };
-
-    IBinder binder = new BluetoothBinder();
-    private String TAG = "BluetoothConnectionService";
-
-    BluetoothServerController bluetoothServerController;
     UpdateListener updateListener = new UpdateListener() {
+        @Override
+        public void onStarted() {
+            Log.v(TAG, "BluetoothServer : onStarted ");
+        }
+
         @Override
         public void onConnected() {
             Log.v(TAG, "BluetoothServer : onConnected ");
+        }
+
+        @Override
+        public void onFinished() {
+            Log.v(TAG, "BluetoothServer : onFinished ");
         }
 
         @Override
@@ -65,7 +53,44 @@ public class BluetoothConnectionService extends Service {
             Log.v(TAG, "BluetoothServer : File transfer successful");
         }
     };
-    FileProgressListener fileProgressListener = new FileProgressListener() {
+
+    IBinder binder = new BluetoothBinder();
+    private String TAG = "BluetoothConnectionService";
+
+    BluetoothServerController bluetoothServerController;
+    BluetoothConnectionListener bluetoothConnectionListener = new BluetoothConnectionListener() {
+        @Override
+        public void onStarted() {
+            Log.v(TAG, "BluetoothServer : onStarted ");
+            updateListener.onStarted();
+        }
+
+        @Override
+        public void onConnected() {
+            Log.v(TAG, "BluetoothServer : onConnected ");
+            updateListener.onConnected();
+        }
+
+        @Override
+        public void onFinished() {
+            Log.v(TAG, "BluetoothServer : onFinished ");
+            updateListener.onFileFinished();
+        }
+
+        @Override
+        public boolean isConnected() {
+            return false;
+        }
+
+        @Override
+        public void onConnectionFailure(String message) {
+            if (message != null) {
+                Log.v(TAG, "BluetoothServer : error :" + message);
+                updateListener.onConnectionFailure(message);
+            }
+        }
+    };
+    private FileProgressListener fileProgressListener = new FileProgressListener() {
         @Override
         public void onProgressChanged(int progress) {
             updateListener.onProgressChanged(progress);

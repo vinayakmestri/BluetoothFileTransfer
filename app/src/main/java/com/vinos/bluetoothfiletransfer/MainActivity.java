@@ -24,9 +24,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
 import com.vinos.bluetoothfiletransfer.bluetooth.CustomAdapter;
 import com.vinos.bluetoothfiletransfer.bluetooth.UpdateListener;
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 3433;
     int MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT = 8757;
     TextView buttonBluetooth, sendButton, receiveButton, selectFile, selectDevice;
+    LinearProgressIndicator progress;
     RecyclerView deviceList;
     BluetoothConnectionService bluetoothConnectionService;
     BluetoothDevice selectedBluetoothDevice;
@@ -52,8 +53,18 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     private String TAG = "MainActivity";
     UpdateListener updateListener = new UpdateListener() {
         @Override
+        public void onStarted() {
+
+        }
+
+        @Override
         public void onConnected() {
 
+        }
+
+        @Override
+        public void onFinished() {
+            progress.setProgress(0);
         }
 
         @Override
@@ -67,13 +78,13 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
         }
 
         @Override
-        public void onProgressChanged(int progress) {
-
+        public void onProgressChanged(int value) {
+            progress.setProgress(value);
         }
 
         @Override
         public void onFileFinished() {
-
+            progress.setProgress(0);
         }
     };
     ServiceConnection serviceConnection = new ServiceConnection() {
@@ -170,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
 
     }
 
-    private void checkPermissions() {
+    private boolean checkPermissions() {
         String[] permissions = {android.Manifest.permission.BLUETOOTH_CONNECT,
                 android.Manifest.permission.BLUETOOTH,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -185,12 +196,11 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
                             MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT
                     );
                 }
-                //finish();
+
+                return false;
             }
         }
-
-
-        //getBondedDevices();
+        return true;
 
     }
 
@@ -232,40 +242,43 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
         setContentView(R.layout.activity_main);
         adapter = BluetoothAdapter.getDefaultAdapter();
         buttonBluetooth = ((TextView) findViewById(R.id.turnOnTextView));
-        deviceList = (RecyclerView) findViewById(R.id.deviceList);
-        deviceList = (RecyclerView) findViewById(R.id.deviceList);
         selectFile = (TextView) findViewById(R.id.selectFile);
         sendButton = (TextView) findViewById(R.id.sendButton);
         selectDevice = (TextView) findViewById(R.id.selectDevice);
         receiveButton = (TextView) findViewById(R.id.receiveButton);
         mainController = (LinearLayout) findViewById(R.id.mainController);
-        deviceList.setLayoutManager(new LinearLayoutManager(this));
+        progress = (LinearProgressIndicator) findViewById(R.id.progress);
+        //deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 
         bluetoothConnectionService = new BluetoothConnectionService();
         buttonBluetooth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startBluetooth();
+
+                if (checkPermissions())
+                    startBluetooth();
             }
         });
         selectDevice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
-                startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
+                if (checkPermissions()) {
+                    Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
+                    startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
+                }
             }
         });
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (selectedBluetoothDevice != null && selectedFile != null) {
-                    bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
-                } else {
-                    Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
+                if (checkPermissions()) {
+                    if (selectedBluetoothDevice != null && selectedFile != null) {
+                        bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
+                    } else {
+                        Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
+                    }
                 }
-
             }
         });
         receiveButton.setOnClickListener(new View.OnClickListener() {

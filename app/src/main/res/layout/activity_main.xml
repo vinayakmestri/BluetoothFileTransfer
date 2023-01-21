@@ -1,93 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/controller"
+        android:id="@+id/mainController"
+        android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
         app:layout_constraintStart_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:context=".MainActivity">
-
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/turnOnTextView"
+            android:id="@+id/selectFile"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@color/design_default_color_primary"
+            android:gravity="center"
+            android:padding="20dp"
+            android:text="Select File"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/selectDevice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:background="@color/design_default_color_primary"
             android:gravity="center"
             android:padding="20dp"
-            android:text="Turn Bluetooth ON"
+            android:text="Select Device"
             android:textColor="@color/white" />
 
-        <LinearLayout
-            android:id="@+id/mainController"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+        <TextView
+            android:id="@+id/sendButton"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/green_circle_icon"
+            android:gravity="center"
+            android:padding="20dp"
+            android:text="Send"
+            android:textColor="@color/white" />
 
-            <TextView
-                android:id="@+id/selectFile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@color/design_default_color_primary"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="Select File"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/selectDevice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@color/design_default_color_primary"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="Select Device"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/sendButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@color/design_default_color_primary"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="Send"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/receiveButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="@color/design_default_color_primary"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="Receive"
-                android:textColor="@color/white" />v
-        </LinearLayout>
-
-
+        <TextView
+            android:id="@+id/receiveButton"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/red_circle_icon"
+            android:gravity="center"
+            android:padding="20dp"
+            android:text="Receive"
+            android:textColor="@color/white" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/deviceList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+    <TextView
+        android:id="@+id/turnOnTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@color/design_default_color_primary"
+        android:gravity="center"
+        android:padding="20dp"
+        android:text="Turn Bluetooth ON"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/controller"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/mainController" />
 </androidx.constraintlayout.widget.ConstraintLayout>

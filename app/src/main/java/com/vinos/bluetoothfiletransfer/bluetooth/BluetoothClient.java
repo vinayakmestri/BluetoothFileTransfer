@@ -3,8 +3,10 @@ package com.vinos.bluetoothfiletransfer.bluetooth;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -94,6 +96,21 @@ public class BluetoothClient extends Thread {
             outputStream.write(file.getName().getBytes());
             outputStream.write(fileSize.array());
             outputStream.write(fileBytes);
+
+            BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(fileBytes));
+            byte[] readBuffer = new byte[1024];
+            int count = 0;
+            int total = 0;
+            while ((count = in.read(readBuffer, 0, readBuffer.length)) != -1) {
+                total += count;
+                outputStream.write(readBuffer, 0, readBuffer.length);
+                Log.i("TOTAL", Long.toString(total));
+                int progress = (int) ((total * 100) / fileBytes.length);
+                Log.i("Upload progress", "" + progress);
+                if (fileProgressListener != null) {
+                    fileProgressListener.onProgressChanged(progress);
+                }
+            }
 
             Constant.isConnectionSuccess = true;
 

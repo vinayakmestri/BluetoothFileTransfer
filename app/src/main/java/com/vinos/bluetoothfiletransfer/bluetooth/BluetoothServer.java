@@ -46,9 +46,12 @@ public class BluetoothServer extends Thread {
     @Override
     public void run() {
         super.run();
-        Log.v(TAG,"BluetoothServer : in run");
+        Log.v(TAG, "BluetoothServer : in run");
         try {
             if (true) {
+                if (bluetoothConnectionListener != null) {
+                    bluetoothConnectionListener.onStarted();
+                }
                 int totalFileNameSizeInBytes = 0;
                 int totalFileSizeInBytes = 0;
 
@@ -77,9 +80,15 @@ public class BluetoothServer extends Thread {
                 read = inputStream.read(buffer, 0, buffer.length);
                 int count = 0;
                 while (read != -1) {
-                    Log.v(TAG, "BluetoothServer : byte " + count++);
                     baos.write(buffer, 0, read);
                     totalBytesRead += read;
+
+                    int progress = (int) ((totalBytesRead * 100) / totalFileSizeInBytes);
+                    Log.i("Upload progress", "" + progress);
+                    if (fileProgressListener != null) {
+                        fileProgressListener.onProgressChanged(progress);
+                    }
+
                     if (totalBytesRead == totalFileSizeInBytes) {
                         break;
                     }
@@ -112,9 +121,11 @@ public class BluetoothServer extends Thread {
                 inputStream.close();
                 outputStream.close();
                 socket.close();
-                if (fileProgressListener != null) {
+                if (bluetoothConnectionListener != null)
+                    bluetoothConnectionListener.onStarted();
+
+                if (fileProgressListener != null)
                     fileProgressListener.onFileFinished();
-                }
             } catch (Exception e) {
                 if (bluetoothConnectionListener != null) {
                     bluetoothConnectionListener.onConnectionFailure(e.getMessage());
