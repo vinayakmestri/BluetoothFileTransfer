@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
 import com.vinos.bluetoothfiletransfer.bluetooth.CustomAdapter;
+import com.vinos.bluetoothfiletransfer.bluetooth.UpdateListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,6 +50,32 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     File selectedFile;
     LinearLayout mainController;
     private String TAG = "MainActivity";
+    UpdateListener updateListener = new UpdateListener() {
+        @Override
+        public void onConnected() {
+
+        }
+
+        @Override
+        public boolean isConnected() {
+            return false;
+        }
+
+        @Override
+        public void onConnectionFailure(String message) {
+
+        }
+
+        @Override
+        public void onProgressChanged(int progress) {
+
+        }
+
+        @Override
+        public void onFileFinished() {
+
+        }
+    };
     ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,
@@ -56,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             Log.v(TAG, "onServiceConnected");
             BluetoothConnectionService.BluetoothBinder binder = (BluetoothConnectionService.BluetoothBinder) service;
             bluetoothConnectionService = binder.getService();
+            bluetoothConnectionService.registerListener(updateListener);
             mBound = true;
         }
 
@@ -65,64 +93,6 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             mBound = false;
         }
     };
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        adapter = BluetoothAdapter.getDefaultAdapter();
-        buttonBluetooth = ((TextView) findViewById(R.id.turnOnTextView));
-        deviceList = (RecyclerView) findViewById(R.id.deviceList);
-        deviceList = (RecyclerView) findViewById(R.id.deviceList);
-        selectFile = (TextView) findViewById(R.id.selectFile);
-        sendButton = (TextView) findViewById(R.id.sendButton);
-        selectDevice = (TextView) findViewById(R.id.selectDevice);
-        receiveButton = (TextView) findViewById(R.id.receiveButton);
-        mainController = (LinearLayout) findViewById(R.id.mainController);
-        deviceList.setLayoutManager(new LinearLayoutManager(this));
-        checkPermissions();
-
-        bluetoothConnectionService = new BluetoothConnectionService();
-        buttonBluetooth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startBluetooth();
-            }
-        });
-        selectDevice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
-                startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
-            }
-        });
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (selectedBluetoothDevice != null && selectedFile != null) {
-                    // bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
-                } else {
-                    Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
-        receiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                receiveButton();
-            }
-        });
-
-        selectFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectFile();
-            }
-        });
-
-    }
 
     @Override
     protected void onResume() {
@@ -254,5 +224,63 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             Log.v("onDestroy", "unbindService");
             unbindService(serviceConnection);
         }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        adapter = BluetoothAdapter.getDefaultAdapter();
+        buttonBluetooth = ((TextView) findViewById(R.id.turnOnTextView));
+        deviceList = (RecyclerView) findViewById(R.id.deviceList);
+        deviceList = (RecyclerView) findViewById(R.id.deviceList);
+        selectFile = (TextView) findViewById(R.id.selectFile);
+        sendButton = (TextView) findViewById(R.id.sendButton);
+        selectDevice = (TextView) findViewById(R.id.selectDevice);
+        receiveButton = (TextView) findViewById(R.id.receiveButton);
+        mainController = (LinearLayout) findViewById(R.id.mainController);
+        deviceList.setLayoutManager(new LinearLayoutManager(this));
+        checkPermissions();
+
+        bluetoothConnectionService = new BluetoothConnectionService();
+        buttonBluetooth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startBluetooth();
+            }
+        });
+        selectDevice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
+                startActivityForResult(intent, BLUETOOTH_DEVICE_SELECT_CODE);
+            }
+        });
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (selectedBluetoothDevice != null && selectedFile != null) {
+                    bluetoothConnectionService.startClient(selectedBluetoothDevice, selectedFile);
+                } else {
+                    Toast.makeText(MainActivity.this, "Select file and device first", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+        receiveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                receiveButton();
+            }
+        });
+
+        selectFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectFile();
+            }
+        });
+
     }
 }

@@ -53,6 +53,7 @@ public class BluetoothServerController extends Thread {
 
             try {
                 socket = bluetoothServerSocket.accept();
+                bluetoothConnectionListener.onConnected();
             } catch (IOException e) {
                 Log.v(TAG,"IOException : " + e.getMessage());
                 break;
