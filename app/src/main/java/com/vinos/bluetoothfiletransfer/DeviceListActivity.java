@@ -16,23 +16,19 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.vinos.bluetoothfiletransfer.adapter.CustomAdapter;
-import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
+import com.vinos.bluetoothfiletransfer.adapter.BluetoothDeviceAdapter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeviceListActivity extends AppCompatActivity implements CustomAdapter.DeviceSelectionListener {
+public class DeviceListActivity extends AppCompatActivity implements BluetoothDeviceAdapter.DeviceSelectionListener {
     BluetoothAdapter adapter;
     List<BluetoothDevice> devices;
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 3433;
     int MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT = 8757;
     TextView buttonBluetooth, sendButton, receiveButton, selectFile;
     RecyclerView deviceList;
-    BluetoothConnectionService bluetoothConnectionService;
     BluetoothDevice selectedBluetoothDevice;
-    File selectedFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +40,6 @@ public class DeviceListActivity extends AppCompatActivity implements CustomAdapt
         deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 
-        bluetoothConnectionService = new BluetoothConnectionService();
         buttonBluetooth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -62,29 +57,10 @@ public class DeviceListActivity extends AppCompatActivity implements CustomAdapt
     }
 
 
-    private void receiveButton() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        try {
-            bluetoothConnectionService.startServer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
     @SuppressLint("MissingPermission")
     private void getBondedDevices() {
         devices = new ArrayList<>(adapter.getBondedDevices());
-        CustomAdapter bluetoothDeviceArrayAdapter = new CustomAdapter(devices, this);
+        BluetoothDeviceAdapter bluetoothDeviceArrayAdapter = new BluetoothDeviceAdapter(devices, this);
         deviceList.setAdapter(bluetoothDeviceArrayAdapter);
     }
 
@@ -130,9 +106,7 @@ public class DeviceListActivity extends AppCompatActivity implements CustomAdapt
     @SuppressLint("MissingPermission")
     @Override
     public void onDeviceSelected(BluetoothDevice bluetoothDevice) {
-        this.selectedBluetoothDevice = bluetoothDevice;
         Toast.makeText(this, bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
-
         Intent intent = new Intent();
         intent.putExtra("device", bluetoothDevice);
         setResult(RESULT_OK, intent);

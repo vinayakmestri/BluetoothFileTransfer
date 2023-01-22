@@ -9,11 +9,13 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.vinos.bluetoothfiletransfer.R;
+
 import java.util.List;
 
-public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
+public class BluetoothDeviceAdapter extends RecyclerView.Adapter<BluetoothDeviceAdapter.ViewHolder> {
 
-    public interface DeviceSelectionListener{
+    public interface DeviceSelectionListener {
         void onDeviceSelected(BluetoothDevice bluetoothDevice);
     }
 
@@ -21,38 +23,12 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     private DeviceSelectionListener onDeviceSelectionListener;
 
     /**
-     * Provide a reference to the type of views that you are using
-     * (custom ViewHolder)
-     */
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private final TextView textView;
-
-        public ViewHolder(View view) {
-            super(view);
-            // Define click listener for the ViewHolder's View
-
-            textView = (TextView) view.findViewById(android.R.id.text1);
-            view.setOnClickListener(this);
-        }
-
-        public TextView getTextView() {
-            return textView;
-        }
-
-        @Override
-        public void onClick(View v) {
-           int index =  getAdapterPosition();
-            onDeviceSelectionListener.onDeviceSelected(deviceList.get(index));
-        }
-    }
-
-    /**
      * Initialize the dataset of the Adapter
      *
      * @param dataSet String[] containing the data to populate views to be used
-     * by RecyclerView
+     *                by RecyclerView
      */
-    public CustomAdapter(List<BluetoothDevice> dataSet,DeviceSelectionListener onDeviceSelectionListener) {
+    public BluetoothDeviceAdapter(List<BluetoothDevice> dataSet, DeviceSelectionListener onDeviceSelectionListener) {
         this.deviceList = dataSet;
         this.onDeviceSelectionListener = onDeviceSelectionListener;
     }
@@ -62,9 +38,35 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(android.R.layout.activity_list_item, viewGroup, false);
+                .inflate(R.layout.layout_device_item, viewGroup, false);
 
         return new ViewHolder(view);
+    }
+
+    /**
+     * Provide a reference to the type of views that you are using
+     * (custom ViewHolder)
+     */
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private final TextView deviceName;
+
+        public ViewHolder(View view) {
+            super(view);
+            // Define click listener for the ViewHolder's View
+
+            deviceName = (TextView) view.findViewById(R.id.deviceName);
+            view.setOnClickListener(this);
+        }
+
+        public TextView getTextView() {
+            return deviceName;
+        }
+
+        @Override
+        public void onClick(View v) {
+           int index =  getAdapterPosition();
+            onDeviceSelectionListener.onDeviceSelected(deviceList.get(index));
+        }
     }
 
     // Replace the contents of a view (invoked by the layout manager)

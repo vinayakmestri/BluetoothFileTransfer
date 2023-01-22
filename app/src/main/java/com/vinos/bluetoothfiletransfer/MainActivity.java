@@ -28,7 +28,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.LinearProgressIndicator;
-import com.vinos.bluetoothfiletransfer.adapter.CustomAdapter;
+import com.vinos.bluetoothfiletransfer.adapter.BluetoothDeviceAdapter;
 import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
 import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
 import com.vinos.bluetoothfiletransfer.util.RealPathUtil;
@@ -37,7 +37,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements CustomAdapter.DeviceSelectionListener {
+public class MainActivity extends AppCompatActivity implements BluetoothDeviceAdapter.DeviceSelectionListener {
 
     boolean mBound = false;
     public static int BLUETOOTH_DEVICE_SELECT_CODE = 4354345;
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     @SuppressLint("MissingPermission")
     private void getBondedDevices() {
         devices = new ArrayList<>(adapter.getBondedDevices());
-        CustomAdapter bluetoothDeviceArrayAdapter = new CustomAdapter(devices, this);
+        BluetoothDeviceAdapter bluetoothDeviceArrayAdapter = new BluetoothDeviceAdapter(devices, this);
         deviceList.setAdapter(bluetoothDeviceArrayAdapter);
     }
 
@@ -180,13 +180,13 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             if (data.hasExtra("device")) {
                 selectedBluetoothDevice = (BluetoothDevice) data.getExtras().get("device");
             }
-
+            selectDevice.setText("Device :" + selectedBluetoothDevice.getName());
             return;
         } else if (resultCode == RESULT_OK) {
             Uri uri = data.getData();
             String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
             Log.v("ABC", "Path : " + fileAbsolutePath);
-
+            selectFile.setText("File :" + fileAbsolutePath);
             File file = new File(fileAbsolutePath);
             selectedFile = file;
 
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
         mainController = (LinearLayout) findViewById(R.id.mainController);
         progress = (LinearProgressIndicator) findViewById(R.id.progress);
         progress.setMax(100);
-        progress.setProgress(50);
+        progress.setProgress(0);
         //deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 
