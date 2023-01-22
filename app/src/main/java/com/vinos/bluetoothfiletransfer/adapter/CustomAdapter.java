@@ -1,4 +1,4 @@
-package com.vinos.bluetoothfiletransfer.bluetooth;
+package com.vinos.bluetoothfiletransfer.adapter;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;

@@ -1,10 +1,13 @@
-package com.vinos.bluetoothfiletransfer.bluetooth;
+package com.vinos.bluetoothfiletransfer.bluetooth.server;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
+
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
+import com.vinos.bluetoothfiletransfer.util.Constant;
 
 import java.io.IOException;
 
@@ -13,13 +16,11 @@ public class BluetoothServerController extends Thread {
 
     BluetoothServerSocket bluetoothServerSocket;
     boolean isCanceled = false;
-    private FileProgressListener fileProgressListener;
-    private BluetoothConnectionListener bluetoothConnectionListener;
+    private UpdateListener updateListener;
 
     @SuppressLint("MissingPermission")
-    public BluetoothServerController(BluetoothConnectionListener bluetoothConnectionListener, FileProgressListener fileProgressListener) {
-        this.bluetoothConnectionListener = bluetoothConnectionListener;
-        this.fileProgressListener = fileProgressListener;
+    public BluetoothServerController(UpdateListener updateListener) {
+        this.updateListener = updateListener;
         init();
     }
 
@@ -53,7 +54,6 @@ public class BluetoothServerController extends Thread {
 
             try {
                 socket = bluetoothServerSocket.accept();
-                bluetoothConnectionListener.onConnected();
             } catch (IOException e) {
                 Log.v(TAG,"IOException : " + e.getMessage());
                 break;
@@ -61,9 +61,9 @@ public class BluetoothServerController extends Thread {
 
             if (!this.isCanceled && socket != null) {
                 Log.v(TAG, "BluetoothServer : starting");
+                updateListener.onConnected();
                 BluetoothServer bluetoothServer = new BluetoothServer(socket);
-                bluetoothServer.setBluetoothConnectionListener(bluetoothConnectionListener);
-                bluetoothServer.setFileProgressListener(fileProgressListener);
+                bluetoothServer.setUpdateListener(updateListener);
                 bluetoothServer.start();
             }
         }

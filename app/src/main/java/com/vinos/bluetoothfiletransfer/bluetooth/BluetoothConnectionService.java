@@ -1,6 +1,6 @@
 package com.vinos.bluetoothfiletransfer.bluetooth;
 
-import static com.vinos.bluetoothfiletransfer.bluetooth.Constant.isConnectionSuccess;
+import static com.vinos.bluetoothfiletransfer.util.Constant.isConnectionSuccess;
 
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
@@ -10,6 +10,12 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import com.vinos.bluetoothfiletransfer.bluetooth.client.BluetoothClient;
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.BluetoothConnectionListener;
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.FileProgressListener;
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
+import com.vinos.bluetoothfiletransfer.bluetooth.server.BluetoothServerController;
 
 import java.io.File;
 
@@ -103,14 +109,13 @@ public class BluetoothConnectionService extends Service {
     };
 
     public void startServer() {
-        bluetoothServerController = new BluetoothServerController(bluetoothConnectionListener, fileProgressListener);
+        bluetoothServerController = new BluetoothServerController(updateListener);
         bluetoothServerController.start();
     }
 
     public Boolean startClient(BluetoothDevice device, File file) {
         BluetoothClient bluetoothClient = new BluetoothClient(device, file);
-        bluetoothClient.setBluetoothConnectionListener(bluetoothConnectionListener);
-        bluetoothClient.setFileProgressListener(fileProgressListener);
+        bluetoothClient.setUpdateListener(updateListener);
         bluetoothClient.start();
         try {
             bluetoothClient.join();

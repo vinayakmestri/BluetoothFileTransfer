@@ -1,9 +1,12 @@
-package com.vinos.bluetoothfiletransfer.bluetooth;
+package com.vinos.bluetoothfiletransfer.bluetooth.client;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
+
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
+import com.vinos.bluetoothfiletransfer.util.Constant;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -20,8 +23,7 @@ public class BluetoothClient extends Thread {
     private BluetoothSocket socket;
     private File file;
 
-    private FileProgressListener fileProgressListener;
-    private BluetoothConnectionListener bluetoothConnectionListener;
+    private UpdateListener updateListener;
 
 
     @SuppressLint("MissingPermission")
@@ -29,13 +31,13 @@ public class BluetoothClient extends Thread {
         this.file = file;
         this.bluetoothDevice = bluetoothDevice;
 
-        if (bluetoothConnectionListener != null) {
+        if (updateListener != null) {
             if (bluetoothDevice == null) {
-                bluetoothConnectionListener.onConnectionFailure("Device is not selected");
+                updateListener.onConnectionFailure("Device is not selected");
                 return;
             }
             if (file == null) {
-                bluetoothConnectionListener.onConnectionFailure("File is not selected");
+                updateListener.onConnectionFailure("File is not selected");
                 return;
             }
         }
@@ -47,13 +49,10 @@ public class BluetoothClient extends Thread {
         }
     }
 
-    public void setBluetoothConnectionListener(BluetoothConnectionListener bluetoothConnectionListener) {
-        this.bluetoothConnectionListener = bluetoothConnectionListener;
+    public void setUpdateListener(UpdateListener updateListener) {
+        this.updateListener = updateListener;
     }
 
-    public void setFileProgressListener(FileProgressListener fileProgressListener) {
-        this.fileProgressListener = fileProgressListener;
-    }
 
     @SuppressLint("MissingPermission")
     @Override
@@ -63,8 +62,8 @@ public class BluetoothClient extends Thread {
         try {
             this.socket.connect();
         } catch (IOException e) {
-            if (bluetoothConnectionListener != null) {
-                bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+            if (updateListener != null) {
+                updateListener.onConnectionFailure(e.getMessage());
             }
             return;
         }
@@ -81,8 +80,8 @@ public class BluetoothClient extends Thread {
                 bufferedInputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                if (bluetoothConnectionListener != null) {
-                    bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+                if (updateListener != null) {
+                    updateListener.onConnectionFailure(e.getMessage());
                 }
             }
 
@@ -95,10 +94,10 @@ public class BluetoothClient extends Thread {
             outputStream.write(fileNameSize.array());
             outputStream.write(file.getName().getBytes());
             outputStream.write(fileSize.array());
-            outputStream.write(fileBytes);
+            //outputStream.write(fileBytes);
 
             BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(fileBytes));
-            byte[] readBuffer = new byte[1024];
+            byte[] readBuffer = new byte[2048];
             int count = 0;
             int total = 0;
             while ((count = in.read(readBuffer, 0, readBuffer.length)) != -1) {
@@ -107,25 +106,29 @@ public class BluetoothClient extends Thread {
                 Log.i("TOTAL", Long.toString(total));
                 int progress = (int) ((total * 100) / fileBytes.length);
                 Log.i("Upload progress", "" + progress);
-                if (fileProgressListener != null) {
-                    fileProgressListener.onProgressChanged(progress);
-                }
+                updateProgress(progress);
             }
 
             Constant.isConnectionSuccess = true;
 
-            sleep(5000);
+            sleep(9000);
             outputStream.close();
             inputStream.close();
             this.socket.close();
-            if (fileProgressListener != null) {
-                fileProgressListener.onFileFinished();
+            if (updateListener != null) {
+                updateListener.onFileFinished();
             }
         } catch (Exception e) {
-            if (bluetoothConnectionListener != null) {
-                bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+            if (updateListener != null) {
+                updateListener.onConnectionFailure(e.getMessage());
             }
             e.printStackTrace();
+        }
+    }
+
+    private void updateProgress(int progress) {
+        if (updateListener != null) {
+            updateListener.onProgressChanged(progress);
         }
     }
 }

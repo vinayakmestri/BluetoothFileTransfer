@@ -1,8 +1,11 @@
-package com.vinos.bluetoothfiletransfer.bluetooth;
+package com.vinos.bluetoothfiletransfer.bluetooth.server;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.Environment;
 import android.util.Log;
+
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.FileProgressListener;
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -20,16 +23,13 @@ public class BluetoothServer extends Thread {
     OutputStream outputStream;
 
     private FileProgressListener fileProgressListener;
-    private BluetoothConnectionListener bluetoothConnectionListener;
+    private UpdateListener updateListener;
 
 
-    public void setBluetoothConnectionListener(BluetoothConnectionListener bluetoothConnectionListener) {
-        this.bluetoothConnectionListener = bluetoothConnectionListener;
+    public void setUpdateListener(UpdateListener updateListener) {
+        this.updateListener = updateListener;
     }
 
-    public void setFileProgressListener(FileProgressListener fileProgressListener) {
-        this.fileProgressListener = fileProgressListener;
-    }
 
     public BluetoothServer(BluetoothSocket socket) {
         this.socket = socket;
@@ -49,8 +49,8 @@ public class BluetoothServer extends Thread {
         Log.v(TAG, "BluetoothServer : in run");
         try {
             if (true) {
-                if (bluetoothConnectionListener != null) {
-                    bluetoothConnectionListener.onStarted();
+                if (updateListener != null) {
+                    updateListener.onStarted();
                 }
                 int totalFileNameSizeInBytes = 0;
                 int totalFileSizeInBytes = 0;
@@ -62,7 +62,7 @@ public class BluetoothServer extends Thread {
                 totalFileNameSizeInBytes = fileSizeBuffer.getInt();
 
                 // String of file name
-                byte[] fileNamebuffer = new byte[1024];
+                byte[] fileNamebuffer = new byte[totalFileNameSizeInBytes];
                 inputStream.read(fileNamebuffer, 0, totalFileNameSizeInBytes);
                 String fileName = new String(fileNamebuffer, 0, totalFileNameSizeInBytes);
 
@@ -74,7 +74,7 @@ public class BluetoothServer extends Thread {
 
                 // The actual file bytes
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[2048];
                 int read = -1;
                 int totalBytesRead = 0;
                 read = inputStream.read(buffer, 0, buffer.length);
@@ -85,13 +85,14 @@ public class BluetoothServer extends Thread {
 
                     int progress = (int) ((totalBytesRead * 100) / totalFileSizeInBytes);
                     Log.i("Upload progress", "" + progress);
-                    if (fileProgressListener != null) {
-                        fileProgressListener.onProgressChanged(progress);
+                    if (updateListener != null) {
+                        updateListener.onProgressChanged(progress);
                     }
 
                     if (totalBytesRead == totalFileSizeInBytes) {
                         break;
                     }
+                    Log.v(TAG, "BluetoothServer : read:" + totalBytesRead + " out of " + totalFileSizeInBytes);
                     read = inputStream.read(buffer, 0, buffer.length);
                 }
                 baos.flush();
@@ -111,8 +112,8 @@ public class BluetoothServer extends Thread {
             }
             sleep(5000);
         } catch (Exception e) {
-            if (bluetoothConnectionListener != null) {
-                bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+            if (updateListener != null) {
+                updateListener.onConnectionFailure(e.getMessage());
             }
             Log.v(TAG, "BluetoothServer :" + e.getMessage());
             e.printStackTrace();
@@ -121,14 +122,14 @@ public class BluetoothServer extends Thread {
                 inputStream.close();
                 outputStream.close();
                 socket.close();
-                if (bluetoothConnectionListener != null)
-                    bluetoothConnectionListener.onStarted();
+                if (updateListener != null)
+                    updateListener.onStarted();
 
-                if (fileProgressListener != null)
-                    fileProgressListener.onFileFinished();
+                if (updateListener != null)
+                    updateListener.onFileFinished();
             } catch (Exception e) {
-                if (bluetoothConnectionListener != null) {
-                    bluetoothConnectionListener.onConnectionFailure(e.getMessage());
+                if (updateListener != null) {
+                    updateListener.onConnectionFailure(e.getMessage());
                 }
             }
         }

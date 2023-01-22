@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -27,9 +28,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.vinos.bluetoothfiletransfer.adapter.CustomAdapter;
 import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
-import com.vinos.bluetoothfiletransfer.bluetooth.CustomAdapter;
-import com.vinos.bluetoothfiletransfer.bluetooth.UpdateListener;
+import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
+import com.vinos.bluetoothfiletransfer.util.RealPathUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
     UpdateListener updateListener = new UpdateListener() {
         @Override
         public void onStarted() {
-
+            showProgress(0);
         }
 
         @Override
@@ -79,14 +81,26 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
 
         @Override
         public void onProgressChanged(int value) {
-            progress.setProgress(value);
+            showProgress(value);
         }
 
         @Override
         public void onFileFinished() {
-            progress.setProgress(0);
+            showProgress(0);
         }
     };
+
+    private void showProgress(int value) {
+
+        Log.v(TAG, "showProgress" + value);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.setProgress(value);
+            }
+        });
+    }
+
     ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,
@@ -168,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
             }
 
             return;
-        } else {
+        } else if (resultCode == RESULT_OK) {
             Uri uri = data.getData();
             String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
             Log.v("ABC", "Path : " + fileAbsolutePath);
@@ -181,12 +195,20 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
 
     }
 
+    private String getPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return android.Manifest.permission.BLUETOOTH_CONNECT;
+        } else {
+            return android.Manifest.permission.BLUETOOTH_ADMIN;
+        }
+    }
+
     private boolean checkPermissions() {
-        String[] permissions = {android.Manifest.permission.BLUETOOTH_CONNECT,
-                android.Manifest.permission.BLUETOOTH,
+        String[] permissions = {getPermission(),
                 android.Manifest.permission.ACCESS_COARSE_LOCATION,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
 
@@ -197,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
                     );
                 }
 
+                Log.v(TAG, permission + "is not given");
                 return false;
             }
         }
@@ -248,6 +271,8 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Dev
         receiveButton = (TextView) findViewById(R.id.receiveButton);
         mainController = (LinearLayout) findViewById(R.id.mainController);
         progress = (LinearProgressIndicator) findViewById(R.id.progress);
+        progress.setMax(100);
+        progress.setProgress(50);
         //deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 

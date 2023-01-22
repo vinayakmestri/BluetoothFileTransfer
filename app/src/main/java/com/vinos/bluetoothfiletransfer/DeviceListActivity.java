@@ -16,8 +16,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.vinos.bluetoothfiletransfer.adapter.CustomAdapter;
 import com.vinos.bluetoothfiletransfer.bluetooth.BluetoothConnectionService;
-import com.vinos.bluetoothfiletransfer.bluetooth.CustomAdapter;
 
 import java.io.File;
 import java.util.ArrayList;

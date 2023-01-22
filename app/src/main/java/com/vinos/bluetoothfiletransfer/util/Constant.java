@@ -1,4 +1,4 @@
-package com.vinos.bluetoothfiletransfer.bluetooth;
+package com.vinos.bluetoothfiletransfer.util;
 
 import java.util.UUID;
 
