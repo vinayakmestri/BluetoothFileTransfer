@@ -9,7 +9,6 @@ import com.vinos.bluetoothfiletransfer.bluetooth.listeners.UpdateListener;
 import com.vinos.bluetoothfiletransfer.util.Constant;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -85,9 +84,9 @@ public class BluetoothClient extends Thread {
             outputStream.write(fileNameSize.array());
             outputStream.write(file.getName().getBytes());
             outputStream.write(fileSize.array());
-            //outputStream.write(fileBytes);
+            outputStream.write(fileBytes);
 
-            BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(fileBytes));
+           /* BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(fileBytes));
             byte[] readBuffer = new byte[1024];
             int count = 0;
             int total = 0;
@@ -97,7 +96,7 @@ public class BluetoothClient extends Thread {
                 int progress = (int) ((total * 100) / fileBytes.length);
                 sleep(100);
                 this.updateProgress(progress);
-            }
+            }*/
 
             Constant.isConnectionSuccess = true;
 

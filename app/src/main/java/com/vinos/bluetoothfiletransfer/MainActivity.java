@@ -100,10 +100,14 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
     private void showProgress(int value) {
 
         Log.v(TAG, "showProgress" + value);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                linearProgressIndicator.setProgressCompat(value, true);
+                progressTextView.setText(value + "%");
+            }
+        });
 
-        Log.v(TAG, "linearProgressIndicator showProgress" + value);
-        linearProgressIndicator.setProgressCompat(value, true);
-        progressTextView.setText(value + "%");
 
     }
 
@@ -189,14 +193,19 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
             selectDevice.setText("Device :" + selectedBluetoothDevice.getName());
             return;
         } else if (resultCode == RESULT_OK) {
-            Uri uri = data.getData();
-            String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
-            Log.v("ABC", "Path : " + fileAbsolutePath);
-            selectFile.setText("File :" + fileAbsolutePath);
-            File file = new File(fileAbsolutePath);
-            selectedFile = file;
+            try {
+                Uri uri = data.getData();
+                String fileAbsolutePath = RealPathUtil.getRealPath(this, uri);
+                Log.v("ABC", "Path : " + fileAbsolutePath);
+                selectFile.setText("File :" + fileAbsolutePath);
+                File file = new File(fileAbsolutePath);
+                selectedFile = file;
+                Log.v("ABC", "Path : name: " + file.getName() + " " + " size: " + file.length());
+            } catch (Exception e) {
+                Toast.makeText(this, "Select image file", Toast.LENGTH_SHORT).show();
+            }
 
-            Log.v("ABC", "Path : name: " + file.getName() + " " + " size: " + file.length());
+
         }
 
     }

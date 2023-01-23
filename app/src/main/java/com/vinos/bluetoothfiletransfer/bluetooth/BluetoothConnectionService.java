@@ -120,6 +120,8 @@ public class BluetoothConnectionService extends Service {
             bluetoothClient.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            if (updateListener != null)
+                updateListener.onConnectionFailure(e.getMessage());
         }
         return isConnectionSuccess;
     }
