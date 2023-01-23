@@ -62,7 +62,7 @@ public class BluetoothServer extends Thread {
                 totalFileNameSizeInBytes = fileSizeBuffer.getInt();
 
                 // String of file name
-                byte[] fileNamebuffer = new byte[totalFileNameSizeInBytes];
+                byte[] fileNamebuffer = new byte[1024];
                 inputStream.read(fileNamebuffer, 0, totalFileNameSizeInBytes);
                 String fileName = new String(fileNamebuffer, 0, totalFileNameSizeInBytes);
 
@@ -72,10 +72,13 @@ public class BluetoothServer extends Thread {
                 fileSizeBuffer = ByteBuffer.wrap(fileSizebuffer);
                 totalFileSizeInBytes = fileSizeBuffer.getInt();
 
+                Log.i("File name size :", "" + totalFileNameSizeInBytes);
+                Log.i("File size :", "" + totalFileSizeInBytes);
+
                 // The actual file bytes
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[2048];
-                int read = -1;
+                byte[] buffer = new byte[1024];
+                int read = 0;
                 int totalBytesRead = 0;
                 read = inputStream.read(buffer, 0, buffer.length);
                 int count = 0;

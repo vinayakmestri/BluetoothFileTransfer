@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
     List<BluetoothDevice> devices;
     int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 3433;
     int MY_PERMISSIONS_REQUEST_BLUETOOTH_CONNECT = 8757;
-    TextView buttonBluetooth, sendButton, receiveButton, selectFile, selectDevice;
-    LinearProgressIndicator progress;
+    TextView buttonBluetooth, sendButton, receiveButton, selectFile, selectDevice, progressTextView;
+    LinearProgressIndicator linearProgressIndicator;
     RecyclerView deviceList;
     BluetoothConnectionService bluetoothConnectionService;
     BluetoothDevice selectedBluetoothDevice;
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
 
         @Override
         public void onFinished() {
-            progress.setProgress(0);
+            showProgress(0);
         }
 
         @Override
@@ -81,24 +81,30 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
 
         @Override
         public void onProgressChanged(int value) {
+            Log.v(TAG, "MainActivity showProgress:" + value);
             showProgress(value);
         }
 
         @Override
         public void onFileFinished() {
             showProgress(0);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "File transfer successfully", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     };
 
     private void showProgress(int value) {
 
         Log.v(TAG, "showProgress" + value);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                progress.setProgress(value);
-            }
-        });
+
+        Log.v(TAG, "linearProgressIndicator showProgress" + value);
+        linearProgressIndicator.setProgressCompat(value, true);
+        progressTextView.setText(value + "%");
+
     }
 
     ServiceConnection serviceConnection = new ServiceConnection() {
@@ -130,11 +136,11 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
             new AlertDialog.Builder(this)
                     .setTitle("Alert").setMessage("Bluetooth is not supported")
                     .setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    }).show();
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            }).show();
         } else if (!adapter.isEnabled()) {
             buttonBluetooth.setVisibility(View.VISIBLE);
             mainController.setVisibility(View.GONE);
@@ -270,9 +276,10 @@ public class MainActivity extends AppCompatActivity implements BluetoothDeviceAd
         selectDevice = (TextView) findViewById(R.id.selectDevice);
         receiveButton = (TextView) findViewById(R.id.receiveButton);
         mainController = (LinearLayout) findViewById(R.id.mainController);
-        progress = (LinearProgressIndicator) findViewById(R.id.progress);
-        progress.setMax(100);
-        progress.setProgress(0);
+        linearProgressIndicator = (LinearProgressIndicator) findViewById(R.id.progress);
+        progressTextView = findViewById(R.id.progressTextView);
+        linearProgressIndicator.setMax(100);
+        linearProgressIndicator.setProgress(0);
         //deviceList.setLayoutManager(new LinearLayoutManager(this));
         checkPermissions();
 

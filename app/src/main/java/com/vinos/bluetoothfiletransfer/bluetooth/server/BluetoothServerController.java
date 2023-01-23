@@ -29,12 +29,13 @@ public class BluetoothServerController extends Thread {
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (bluetoothAdapter != null) {
                 Log.v(TAG, "BluetoothAdapter : initialized");
-                bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("BluetoothFileTransfer", Constant.uuid);
+                bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("Bluetooth", Constant.uuid);
                 isCanceled = false;
             } else {
                 Log.v(TAG, "BluetoothAdapter : null");
                 isCanceled = true;
                 bluetoothServerSocket = null;
+                updateListener.onConnectionFailure("BluetoothAdapter not initialized");
             }
         } catch (Exception e) {
             e.printStackTrace();

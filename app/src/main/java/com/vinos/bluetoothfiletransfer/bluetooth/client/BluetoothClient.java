@@ -27,30 +27,15 @@ public class BluetoothClient extends Thread {
 
 
     @SuppressLint("MissingPermission")
-    public BluetoothClient(BluetoothDevice bluetoothDevice, File file) {
+    public BluetoothClient(BluetoothDevice bluetoothDevice, File file, UpdateListener updateListener) {
         this.file = file;
         this.bluetoothDevice = bluetoothDevice;
-
-        if (updateListener != null) {
-            if (bluetoothDevice == null) {
-                updateListener.onConnectionFailure("Device is not selected");
-                return;
-            }
-            if (file == null) {
-                updateListener.onConnectionFailure("File is not selected");
-                return;
-            }
-        }
-
+        this.updateListener = updateListener;
         try {
             this.socket = bluetoothDevice.createRfcommSocketToServiceRecord(Constant.uuid);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void setUpdateListener(UpdateListener updateListener) {
-        this.updateListener = updateListener;
     }
 
 
@@ -62,8 +47,8 @@ public class BluetoothClient extends Thread {
         try {
             this.socket.connect();
         } catch (IOException e) {
-            if (updateListener != null) {
-                updateListener.onConnectionFailure(e.getMessage());
+            if (this.updateListener != null) {
+                this.updateListener.onConnectionFailure(e.getMessage());
             }
             return;
         }
@@ -74,14 +59,17 @@ public class BluetoothClient extends Thread {
             InputStream inputStream = this.socket.getInputStream();
             byte[] fileBytes = null;
             try {
+                if (this.updateListener != null) {
+                    this.updateListener.onStarted();
+                }
                 fileBytes = new byte[(int) file.length()];
                 BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
                 bufferedInputStream.read(fileBytes, 0, fileBytes.length);
                 bufferedInputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                if (updateListener != null) {
-                    updateListener.onConnectionFailure(e.getMessage());
+                if (this.updateListener != null) {
+                    this.updateListener.onConnectionFailure(e.getMessage());
                 }
             }
 
@@ -91,43 +79,49 @@ public class BluetoothClient extends Thread {
             ByteBuffer fileSize = ByteBuffer.allocate(4);
             fileSize.putInt(fileBytes.length);
 
+            Log.i("File name size :", "" + file.getName().getBytes().length);
+            Log.i("File size :", "" + fileBytes.length);
+
             outputStream.write(fileNameSize.array());
             outputStream.write(file.getName().getBytes());
             outputStream.write(fileSize.array());
             //outputStream.write(fileBytes);
 
             BufferedInputStream in = new BufferedInputStream(new ByteArrayInputStream(fileBytes));
-            byte[] readBuffer = new byte[2048];
+            byte[] readBuffer = new byte[1024];
             int count = 0;
             int total = 0;
             while ((count = in.read(readBuffer, 0, readBuffer.length)) != -1) {
                 total += count;
-                outputStream.write(readBuffer, 0, readBuffer.length);
-                Log.i("TOTAL", Long.toString(total));
+                outputStream.write(readBuffer, 0, count);
                 int progress = (int) ((total * 100) / fileBytes.length);
-                Log.i("Upload progress", "" + progress);
-                updateProgress(progress);
+                sleep(100);
+                this.updateProgress(progress);
             }
 
             Constant.isConnectionSuccess = true;
 
-            sleep(9000);
+            sleep(5000);
             outputStream.close();
             inputStream.close();
             this.socket.close();
-            if (updateListener != null) {
-                updateListener.onFileFinished();
+
+            if (this.updateListener != null) {
+                this.updateListener.onFileFinished();
+                this.updateListener.onFinished();
             }
+
         } catch (Exception e) {
-            if (updateListener != null) {
-                updateListener.onConnectionFailure(e.getMessage());
+            if (this.updateListener != null) {
+                this.updateListener.onConnectionFailure(e.getMessage());
             }
             e.printStackTrace();
         }
     }
 
     private void updateProgress(int progress) {
-        if (updateListener != null) {
+        if (this.updateListener != null && progress % 5 == 0) {
+            Log.i("Client Upload progress change", "" + progress);
             updateListener.onProgressChanged(progress);
         }
     }

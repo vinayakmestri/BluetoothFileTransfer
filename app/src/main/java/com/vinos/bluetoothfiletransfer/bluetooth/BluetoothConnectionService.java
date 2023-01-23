@@ -24,17 +24,17 @@ public class BluetoothConnectionService extends Service {
     UpdateListener updateListener = new UpdateListener() {
         @Override
         public void onStarted() {
-            Log.v(TAG, "BluetoothServer : onStarted ");
+            Log.v(TAG, "Bluetooth: onStarted ");
         }
 
         @Override
         public void onConnected() {
-            Log.v(TAG, "BluetoothServer : onConnected ");
+            Log.v(TAG, "Bluetooth: onConnected ");
         }
 
         @Override
         public void onFinished() {
-            Log.v(TAG, "BluetoothServer : onFinished ");
+            Log.v(TAG, "Bluetooth : onFinished ");
         }
 
         @Override
@@ -50,13 +50,13 @@ public class BluetoothConnectionService extends Service {
         @Override
         public void onProgressChanged(int progress) {
 
-            Log.v(TAG, "BluetoothServer : file transfer progress " + progress);
+            Log.v(TAG, "Bluetooth: file transfer progress " + progress);
 
         }
 
         @Override
         public void onFileFinished() {
-            Log.v(TAG, "BluetoothServer : File transfer successful");
+            Log.v(TAG, "Bluetooth : File transfer successful");
         }
     };
 
@@ -114,8 +114,7 @@ public class BluetoothConnectionService extends Service {
     }
 
     public Boolean startClient(BluetoothDevice device, File file) {
-        BluetoothClient bluetoothClient = new BluetoothClient(device, file);
-        bluetoothClient.setUpdateListener(updateListener);
+        BluetoothClient bluetoothClient = new BluetoothClient(device, file, updateListener);
         bluetoothClient.start();
         try {
             bluetoothClient.join();
