@@ -103,10 +103,6 @@ public class BluetoothServer extends Thread {
                 File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 Log.v(TAG, "BluetoothServer : file  path :" + directory.getAbsolutePath());
                 File file = new File(directory, String.valueOf(fileName));
-                /*if(file.exists()){
-                    file.delete();
-                    file.createNewFile();
-                }*/
                 Log.v(TAG, "BluetoothServer : file actual  path :" + file.getAbsolutePath());
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(baos.toByteArray());
