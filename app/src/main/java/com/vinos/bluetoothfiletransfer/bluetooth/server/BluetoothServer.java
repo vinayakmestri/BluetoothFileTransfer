@@ -111,6 +111,10 @@ public class BluetoothServer extends Thread {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(baos.toByteArray());
                 fos.close();
+
+                //boolean isWriteSuccess = FileHelper.storeFile(file,baos);
+                //Log.v(TAG, "BluetoothServer : file transfer successfully " + isWriteSuccess++);
+
                 Log.v(TAG, "BluetoothServer : file transfer successfully " + count++);
             }
             sleep(5000);
